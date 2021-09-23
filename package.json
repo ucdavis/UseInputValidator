@@ -1,0 +1,58 @@
+{
+  "name": "use-input-validator",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.6",
+    "@babel/preset-react": "^7.14.5",
+    "@rollup/plugin-babel": "^5.3.0",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^11.2.7",
+    "@testing-library/user-event": "^12.8.3",
+    "@types/jest": "^26.0.24",
+    "@types/node": "^12.20.26",
+    "@types/react": "^17.0.24",
+    "@types/react-dom": "^17.0.9",
+    "npm-run-all": "^4.1.5",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.57.0",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "run-script-os": "^1.1.6",
+    "typescript": "^4.4.3",
+    "web-vitals": "^1.1.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build_cra": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "build": "run-script-os",
+    "build:darwin:linux": "rimraf dist && NODE_ENV=production babel src/lib --extensions .ts,.tsx,.js,.jsx --out-dir dist --copy-files --ignore __tests__,spec.js,test.js,__snapshots__",
+    "build:win32": "rimraf dist&&set NODE_ENV=production&&babel src/lib --extensions .ts,.tsx,.js,.jsx --out-dir dist --copy-files --ignore __tests__,spec.js,test.js,__snapshots__"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
