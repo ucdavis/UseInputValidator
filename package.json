@@ -2,10 +2,14 @@
   "name": "use-input-validator",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "@rollup/plugin-typescript": "^8.2.5"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
   "devDependencies": {
-    "@babel/cli": "^7.15.7",
-    "@babel/core": "^7.15.5",
     "@babel/preset-env": "^7.15.6",
     "@babel/preset-react": "^7.14.5",
     "@rollup/plugin-babel": "^5.3.0",
@@ -22,9 +26,9 @@
     "react-scripts": "4.0.3",
     "rimraf": "^3.0.2",
     "rollup": "^2.57.0",
+    "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
-    "run-script-os": "^1.1.6",
     "typescript": "^4.4.3",
     "web-vitals": "^1.1.2"
   },
@@ -33,9 +37,7 @@
     "build_cra": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "build": "run-script-os",
-    "build:darwin:linux": "rimraf dist && NODE_ENV=production babel src/lib --extensions .ts,.tsx,.js,.jsx --out-dir dist --copy-files --ignore __tests__,spec.js,test.js,__snapshots__",
-    "build:win32": "rimraf dist&&set NODE_ENV=production&&babel src/lib --extensions .ts,.tsx,.js,.jsx --out-dir dist --copy-files --ignore __tests__,spec.js,test.js,__snapshots__"
+    "build": "rimraf dist && rollup -c rollup.config.js"
   },
   "eslintConfig": {
     "extends": [

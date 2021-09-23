@@ -1,5 +1,4 @@
 import React from "react";
-import "./TextInput.css";
 
 interface Props {
   type: string;

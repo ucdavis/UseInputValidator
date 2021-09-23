@@ -109,7 +109,7 @@ dist
 /.pnp
 .pnp.js
 
-# production
+# build output
 build/
 dist/
 
