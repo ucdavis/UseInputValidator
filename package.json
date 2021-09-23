@@ -36,6 +36,7 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
+    "test": "react-scripts test",
     "build": "rimraf dist && rollup -c",
     "build-watch": "rimraf dist && rollup -c -w",
     "start-playground": "cd playground && npm run start",
