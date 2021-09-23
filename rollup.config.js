@@ -7,10 +7,7 @@ import cleanup from "rollup-plugin-cleanup";
 
 export default {
   input: "./src/index.ts",
-  output: [
-    { file: pkg.main, format: "cjs", dir: "dist" },
-    { file: pkg.module, format: "esm", dir: "dist" },
-  ],
+  output: [{ format: "esm", dir: "dist" }],
   plugins: [
     external(),
     babel({
