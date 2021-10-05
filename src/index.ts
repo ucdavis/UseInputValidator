@@ -1,1 +1,1 @@
-export { TextInput } from "./lib";
+export * from "./lib";
