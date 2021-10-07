@@ -1,32 +1,29 @@
-import babel from "@rollup/plugin-babel";
-import external from "rollup-plugin-peer-deps-external";
-import del from "rollup-plugin-delete";
-import pkg from "./package.json";
+import peerDepsExternal from "rollup-plugin-peer-deps-external";
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import typescript from "rollup-plugin-typescript2";
-import cleanup from "rollup-plugin-cleanup";
-import { builtinModules } from "module";
+
+const packageJson = require("./package.json");
 
 export default {
-  input: "./src/index.ts",
+  // starting from lib folder so that we don't bundle demo components
+  input: "src/lib/index.ts",
   output: [
-    { file: pkg.main, format: "cjs", sourcemap: true },
-    { file: pkg.module, format: "esm", sourcemap: true },
+    {
+      file: packageJson.main,
+      format: "cjs",
+      sourcemap: true,
+    },
+    {
+      file: packageJson.module,
+      format: "esm",
+      sourcemap: true,
+    },
   ],
   plugins: [
-    external(),
-    del({ targets: ["dist/*"] }),
-    typescript(),
-    babel({
-      exclude: "node_modules/**",
-      babelHelpers: "bundled",
-    }),
-    cleanup({ comments: "none" }),
+    peerDepsExternal(),
+    resolve(),
+    commonjs(),
+    typescript({ useTsconfigDeclarationDir: true }),
   ],
-  external: [
-    ...builtinModules,
-    ...(pkg.dependencies == null ? [] : Object.keys(pkg.dependencies)),
-    ...(pkg.devDependencies == null ? [] : Object.keys(pkg.devDependencies)),
-    ...(pkg.peerDependencies == null ? [] : Object.keys(pkg.peerDependencies)),
-  ],
-  treeshake: false, // TODO: figure out why treeshaking disappears code inside try/catch blocks
 };
