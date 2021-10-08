@@ -3,6 +3,7 @@ import { SchemaOf } from "yup";
 import { Data, NestedData } from "./types";
 
 export const nestedDataSchema: SchemaOf<NestedData> = yup.object().shape({
+  id: yup.number().required(),
   aNestedValue: yup.string().required(),
   aDependantValue: yup
     .string()

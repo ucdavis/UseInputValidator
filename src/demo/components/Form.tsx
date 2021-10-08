@@ -10,6 +10,9 @@ export interface Props {
 
 export const Form = (props: Props) => {
   const [data, setData] = useState(props.data);
+  const [nextId, setNextId] = useState(
+    Math.max(...props.data.nestedValues.map((v) => v.id)) + 1
+  );
   const {
     context,
     onChange,
@@ -36,7 +39,7 @@ export const Form = (props: Props) => {
         />
         <InputErrorMessage name="aValue" />
         {data.nestedValues.map((n, i) => (
-          <div key={i}>
+          <div key={`${i}_${n.id}`}>
             <NestedForm
               nestedData={n}
               setNestedData={(nestedData) => {

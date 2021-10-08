@@ -4,6 +4,7 @@ export interface Data {
 }
 
 export interface NestedData {
+  id: number;
   aNestedValue: string;
   aDependantValue: string;
 }
