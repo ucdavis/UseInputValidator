@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Data } from "../types";
 import { dataSchema } from "../schemas";
 import { useInputValidator, ValidationProvider } from "../../lib";
+import { NestedForm } from "./NestedForm";
 
 export interface Props {
   data: Data;
@@ -16,6 +17,7 @@ export const Form = (props: Props) => {
     InputErrorMessage,
     formErrorCount,
     getClassName,
+    validateAll,
   } = useInputValidator(dataSchema, data);
 
   console.debug("formErrorCount", formErrorCount);
@@ -33,6 +35,37 @@ export const Form = (props: Props) => {
           onBlur={onBlur("aValue")}
         />
         <InputErrorMessage name="aValue" />
+        {data.nestedValues.map((n, i) => (
+          <div key={i}>
+            <NestedForm
+              nestedData={n}
+              setNestedData={(nestedData) => {
+                const nestedValues = [...data.nestedValues];
+                nestedValues.splice(i, 1, nestedData);
+                setData({ ...data, nestedValues });
+              }}
+              onDelete={() => {
+                const nestedValues = [...data.nestedValues];
+                nestedValues.splice(i, 1);
+                setData({ ...data, nestedValues });
+              }}
+            />
+          </div>
+        ))}
+        <button onClick={validateAll}>Validate All</button>
+        <button
+          disabled={formErrorCount > 0}
+          onClick={async () => {
+            const errors = await validateAll();
+            if (errors.length > 0) {
+              alert("Fix errors first");
+            } else {
+              alert("Success!");
+            }
+          }}
+        >
+          Submit
+        </button>
       </ValidationProvider>
     </>
   );

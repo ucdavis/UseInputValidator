@@ -7,8 +7,8 @@ export const nestedDataSchema: SchemaOf<NestedData> = yup.object().shape({
   aDependantValue: yup
     .string()
     .required()
-    .when("aNestedValue", (value, schema) =>
-      value ? schema.equals(`Hello ${value}`) : schema
+    .when("aNestedValue", (aNestedValue, schema) =>
+      schema.equals([`Hello ${aNestedValue}`])
     ),
 });
 
