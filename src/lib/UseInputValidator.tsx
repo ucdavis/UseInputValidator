@@ -86,10 +86,10 @@ export function useInputValidator<T>(
         }
       } finally {
         if (reevaluateErrors) {
-          // make sure other field errors are reevaluated to account for complex validations
-          for (const field of errors
-            .filter((e) => e.path !== name)
-            .map((e) => e.path as TKey)) {
+          // make sure other touched fields are reevaluated to account for complex validations
+          const errorFields = errors.map((e) => e.path as TKey);
+
+          for (const field of touchedFields.filter((e) => e !== name)) {
             validateFieldImpl(field, newValues[field]);
           }
         }
