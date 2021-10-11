@@ -70,7 +70,7 @@ export const useOrCreateValidationContext = (
 
   return newContext;
 
-  function validateOptions(options: ValidatorOptions) {
+  function validateOptions(options: ValidatorOptions | null) {
     if (!options?.classNameErrorInput || !options?.classNameErrorMessage) {
       console.warn(
         "classNameErrorInput and classNameErrorMessage are needed for top-level calls to useInputValidator()"

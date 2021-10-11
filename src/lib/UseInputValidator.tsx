@@ -109,7 +109,7 @@ export function useInputValidator<T>(
 
     return () => {
       // accessing errors via ref necessary to not cature original value in closure scope
-      setFormErrorCount((count) => count - errorsRef.current.length);
+      setFormErrorCount((count) => count - (errorsRef.current?.length || 0));
       callbacks.splice(callbacks.indexOf(cb), 1);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -269,7 +269,9 @@ export function useInputValidator<T>(
 }
 
 // provides previous value of given state
-function usePrevious<T>(value: T): [T | undefined, MutableRefObject<T>] {
+function usePrevious<T>(
+  value: T
+): [T | undefined, MutableRefObject<T | undefined>] {
   const ref = useRef<T>();
   useEffect(() => {
     ref.current = value;
