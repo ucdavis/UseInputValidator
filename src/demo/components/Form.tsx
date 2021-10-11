@@ -21,6 +21,9 @@ export const Form = (props: Props) => {
     formErrorCount,
     getClassName,
     validateAll,
+    formIsDirty,
+    formIsTouched,
+    resetContext,
   } = useInputValidator(dataSchema, data, {
     classNameErrorInput: "is-invalid",
     classNameErrorMessage: "text-danger",
@@ -69,6 +72,12 @@ export const Form = (props: Props) => {
           }}
         >
           Submit
+        </button>
+        <button
+          disabled={!formIsDirty && !formIsTouched && formErrorCount === 0}
+          onClick={resetContext}
+        >
+          Reset
         </button>
       </ValidationProvider>
     </>
