@@ -16,11 +16,13 @@ import {
   ValidationContext,
   useOrCreateValidationContext,
   ValidatorCallbacks,
+  ValidatorOptions,
 } from "./ValidationProvider";
 
 export function useInputValidator<T>(
   schema: AnyObjectSchema,
-  obj: T | null = null
+  obj: T | null = null,
+  options: ValidatorOptions | null = null
 ) {
   type TKey = keyof T;
 
@@ -31,7 +33,7 @@ export function useInputValidator<T>(
   }, [obj, setValues]);
 
   const existingContext = useContext(ValidationContext);
-  const context = useOrCreateValidationContext(existingContext);
+  const context = useOrCreateValidationContext(options, existingContext);
 
   const {
     formErrorCount,
@@ -65,10 +67,6 @@ export function useInputValidator<T>(
     }
   }, [errors, formErrorCount, setFormErrorCount, previousErrors]);
 
-  useEffect(() => {
-    console.log("errors:", errors);
-  }, [errors]);
-
   const validateFieldImpl = useCallback(
     async (name: TKey, value: T[TKey], reevaluateErrors: boolean = false) => {
       const newValues = ({ ...values, [name]: value } as unknown) as T;
@@ -79,9 +77,7 @@ export function useInputValidator<T>(
           setErrors((e) => e.filter((e) => e.path !== name));
         }
       } catch (e: unknown) {
-        console.log("validation error:", e);
         if (e instanceof ValidationError) {
-          console.log("validation error:", e);
           setErrors((errors) => [
             ...errors.filter((e) => e.path !== name),
             e as ValidationError,
@@ -162,7 +158,7 @@ export function useInputValidator<T>(
 
   const getClassName = (name: TKey, passThroughClassNames: string = "") => {
     return propertyHasErrors(name)
-      ? `${passThroughClassNames} is-invalid`
+      ? `${passThroughClassNames} ${context.options?.classNameErrorInput || ""}`
       : passThroughClassNames;
   };
 
@@ -179,7 +175,7 @@ export function useInputValidator<T>(
     return propertyHasErrors(name) ? (
       <>
         {messages.map((m, i) => (
-          <p className="text-danger" key={i}>
+          <p className={context.options?.classNameErrorMessage} key={i}>
             {m}
           </p>
         ))}

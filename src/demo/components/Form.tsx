@@ -21,9 +21,10 @@ export const Form = (props: Props) => {
     formErrorCount,
     getClassName,
     validateAll,
-  } = useInputValidator(dataSchema, data);
-
-  console.debug("formErrorCount", formErrorCount);
+  } = useInputValidator(dataSchema, data, {
+    classNameErrorInput: "is-invalid",
+    classNameErrorMessage: "text-danger",
+  });
 
   return (
     <>
