@@ -1,21 +1,17 @@
 {
-  "name": "use-input-validator",
+  "name": "@ucdavis/use-input-validator",
   "version": "1.0.0",
   "description": "Input validation that stays out of the way",
-  "keywords": [
-    "react",
-    "hooks",
-    "form",
-    "input",
-    "validator",
-    "yup"
-  ],
   "main": "build/index.js",
   "module": "build/index.es.js",
   "types": "build/",
   "files": [
     "build"
   ],
+  "exports": {
+    "require": "./build/index.js",
+    "import": "./build/index.es.js"
+  },
   "scripts": {
     "build": "rimraf build && rollup -c",
     "storybook": "start-storybook -p 6006",
@@ -25,16 +21,6 @@
     "test:watch": "jest --watch",
     "prepublishOnly": "npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ucdavis/UseInputValidator.git"
-  },
-  "author": "swebermilne@ucdavis.edu",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/ucdavis/UseInputValidator/issues"
-  },
-  "homepage": "https://github.com/ucdavis/UseInputValidator#readme",
   "dependencies": {
     "@react-hook/debounce": "^4.0.0"
   },
@@ -67,5 +53,23 @@
     "tslib": "^2.3.1",
     "typescript": "^4.4.3",
     "yup": "^0.32.9"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ucdavis/UseInputValidator.git"
+  },
+  "author": "Spruce Weber-Milne <swebermilne@ucdavis.edu>",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "hooks",
+    "form",
+    "input",
+    "validation",
+    "yup"
+  ],
+  "bugs": {
+    "url": "https://github.com/ucdavis/UseInputValidator/issues"
+  },
+  "homepage": "https://github.com/ucdavis/UseInputValidator#readme"
 }
