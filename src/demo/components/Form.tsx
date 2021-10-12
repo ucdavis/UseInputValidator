@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Data } from "../types";
 import { dataSchema } from "../schemas";
-import { useInputValidator, ValidationProvider } from "../../lib";
+import { useInputValidator, ValidationProvider } from "../..";
 import { NestedForm } from "./NestedForm";
 
 export interface Props {

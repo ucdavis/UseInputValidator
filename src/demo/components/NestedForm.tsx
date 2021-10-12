@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useInputValidator } from "../../lib";
+import { useInputValidator } from "../..";
 import { nestedDataSchema } from "../schemas";
 import { NestedData } from "../types";
 

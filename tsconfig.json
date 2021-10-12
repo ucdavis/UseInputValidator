@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": true,
     "declaration": true,
     "declarationDir": "build",
     "module": "esnext",
@@ -11,11 +12,12 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true
   },
-  "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "build",
+    "src/demo/**",
     "src/**/*.stories.tsx",
-    "src/**/*.test.tsx"
+    "src/**/*.test.tsx",
+    "jest.setup.ts"
   ]
 }
