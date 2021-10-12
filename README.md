@@ -25,10 +25,7 @@ npm install --save @ucdavis/use-input-validator
 ## Usage
 
 ```tsx
-import {
-  useInputValidator,
-  ValidationProvider,
-} from "@ucdavis/use-input-validator";
+import { useInputValidator, ValidationProvider } from "@ucdavis/use-input-validator";
 import * as yup from "yup";
 
 export interface Data {
@@ -81,7 +78,7 @@ Things worth mentioning
 
 - You are in charge of your data. This hook maintains a shallow clone of your data only to do reevaluations.
 - Validation is tied to `InputErrorMessage`. In the above example, only property `aValue` will be validated.
-- Passing `context` to a `ValidationProvider` is only necessary if there will be nested components that also use this hook.
+- Using a `ValidationProvider` is only necessary if there will be nested components that also use this hook.
 - A more complete example can be found in [src/demo](./src/demo)
 
 ## Demo
