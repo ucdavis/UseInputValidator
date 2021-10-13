@@ -102,4 +102,4 @@ Please contribute using [Github Flow](https://guides.github.com/introduction/flo
 
 ## License
 
-[MIT](LICENSE) © [swebermilne@ucdavis.edu](https://github.com/ucdavis)
+[MIT](LICENSE) © [UC Davis](https://github.com/ucdavis)
