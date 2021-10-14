@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
+import { isPropertySignature } from "typescript";
 import { useInputValidator } from "../..";
 import { nestedDataSchema } from "../schemas";
 import { NestedData } from "../types";
@@ -15,6 +16,7 @@ export const NestedForm = ({ nestedData, setNestedData, onDelete }: Props) => {
     onBlur,
     InputErrorMessage,
     getClassName,
+    resetField,
   } = useInputValidator(nestedDataSchema, nestedData);
 
   return (
@@ -44,6 +46,15 @@ export const NestedForm = ({ nestedData, setNestedData, onDelete }: Props) => {
         <InputErrorMessage name="aDependantValue" />
       </div>
       <button onClick={onDelete}>X</button>
+      <button
+        onClick={() => {
+          onChange("aDependantValue", (e) => resetField("aDependantValue"))({
+            target: { value: nestedData.aDependantValue },
+          } as ChangeEvent<HTMLInputElement>);
+        }}
+      >
+        Reset Field 2
+      </button>
     </>
   );
 };

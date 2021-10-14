@@ -15,9 +15,12 @@ import { AnyObjectSchema, ValidationError } from "yup";
 import {
   ValidationContext,
   useOrCreateValidationContext,
-  ValidatorCallbacks,
+  ValidatorRef,
   ValidatorOptions,
 } from "./ValidationProvider";
+
+const validateDelay = 250;
+const resetDelay = 300; // longer than validateDelay to allow resets to be initiated from within event handlers
 
 export function useInputValidator<T>(
   schema: AnyObjectSchema,
@@ -37,13 +40,12 @@ export function useInputValidator<T>(
 
   const {
     formErrorCount,
-    setFormErrorCount,
     formIsTouched,
     setFormIsTouched,
     formIsDirty,
     setFormIsDirty,
-
-    callbacks,
+    updateFormErrorCount,
+    validatorRefs,
   } = context;
 
   const [errors, setErrors] = useState([] as ValidationError[]);
@@ -61,11 +63,9 @@ export function useInputValidator<T>(
     const previousErrorCount = (previousErrors || []).flatMap((e) => e.errors)
       .length;
     if (errorCount !== previousErrorCount) {
-      setFormErrorCount(
-        (formErrorCount) => formErrorCount + errorCount - previousErrorCount
-      );
+      updateFormErrorCount();
     }
-  }, [errors, formErrorCount, setFormErrorCount, previousErrors]);
+  }, [errors]);
 
   const validateFieldImpl = useCallback(
     async (name: TKey, value: T[TKey], reevaluateErrors: boolean = false) => {
@@ -98,28 +98,21 @@ export function useInputValidator<T>(
     [schema, setValues, setErrors, propertyHasErrors, values]
   );
 
-  const validateField = useDebounceCallback(validateFieldImpl, 250);
+  const validateField = useDebounceCallback(validateFieldImpl, validateDelay);
 
   const registeredNames = useRef([] as TKey[]);
-  const validatorCallbacks = useRef({} as ValidatorCallbacks);
+  const validatorRef = useRef({} as ValidatorRef);
 
   useEffect(() => {
-    const cb = validatorCallbacks;
-    callbacks.push(cb);
+    const ref = validatorRef;
+    validatorRefs.push(ref);
 
     return () => {
-      // accessing errors via ref necessary to not cature original value in closure scope
-      setFormErrorCount((count) => count - (errorsRef.current?.length || 0));
-      callbacks.splice(callbacks.indexOf(cb), 1);
+      updateFormErrorCount();
+      validatorRefs.splice(validatorRefs.indexOf(ref), 1);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const reset = useCallback(() => {
-    setTouchedFields([]);
-    setDirtyFields([]);
-    setErrors([]);
-  }, [setTouchedFields, setDirtyFields, setErrors]);
 
   const validate = useCallback(async () => {
     const errors = [] as ValidationError[];
@@ -132,25 +125,10 @@ export function useInputValidator<T>(
     return errors;
   }, [validateFieldImpl, values]);
 
-  useEffect(() => {
-    validatorCallbacks.current.reset = reset;
-    validatorCallbacks.current.validate = validate;
-  }, [reset, validate]);
-
-  const resetContext = () => {
-    setFormErrorCount(0);
-    setFormIsTouched(false);
-    setFormIsDirty(false);
-    callbacks.forEach((cb) => {
-      const reset = cb.current?.reset;
-      reset && reset();
-    });
-  };
-
   const validateAll = async () => {
     let errors = [] as ValidationError[];
-    for (const cb of callbacks) {
-      const validate = cb.current?.validate;
+    for (const ref of validatorRefs) {
+      const validate = ref.current?.validate;
       validate && (errors = [...errors, ...(await validate())]);
     }
     return errors;
@@ -231,21 +209,50 @@ export function useInputValidator<T>(
 
   const fieldIsTouched = (name: TKey) => touchedFields.some((f) => f === name);
   const fieldIsDirty = (name: TKey) => dirtyFields.some((f) => f === name);
-  const resetField = (name: TKey) => {
-    setTouchedFields(touchedFields.filter((f) => f === name));
-    setDirtyFields(dirtyFields.filter((f) => f === name));
-    if (propertyHasErrors(name)) {
-      setErrors((errors) => errors.filter((e) => e.path !== name));
-    }
+
+  const resetField = useCallback(
+    useDebounceCallback((name: TKey) => {
+      setTouchedFields(touchedFields.filter((f) => f === name));
+      setDirtyFields(dirtyFields.filter((f) => f === name));
+      if (propertyHasErrors(name)) {
+        setErrors((errors) => errors.filter((e) => e.path !== name));
+      }
+    }, resetDelay),
+    [
+      touchedFields,
+      setTouchedFields,
+      dirtyFields,
+      setDirtyFields,
+      propertyHasErrors,
+      errors,
+      setErrors,
+    ]
+  );
+
+  const resetLocalFields = useCallback(
+    useDebounceCallback(() => {
+      setTouchedFields([]);
+      setDirtyFields([]);
+      setErrors([]);
+      updateFormErrorCount();
+    }, resetDelay),
+    [setTouchedFields, setDirtyFields, setErrors, updateFormErrorCount]
+  );
+
+  const resetContext = () => {
+    validatorRefs.forEach((ref) => {
+      const reset = ref.current?.reset;
+      reset && reset();
+    });
+    setFormIsTouched(false);
+    setFormIsDirty(false);
   };
-  const resetLocalFields = () => {
-    setTouchedFields([]);
-    setDirtyFields([]);
-    const errorCount = errors.flatMap((e) => e.errors).length;
-    // update formErrorCount immediately instead of waiting for effect in case the owning component is about to be removed
-    setFormErrorCount((formErrorCount) => formErrorCount - errorCount);
-    setErrors([]);
-  };
+
+  useEffect(() => {
+    validatorRef.current.reset = resetLocalFields;
+    validatorRef.current.validate = validate;
+    validatorRef.current.errors = errors;
+  }, [resetLocalFields, validate, errors]);
 
   return {
     valueChanged,

@@ -5,23 +5,26 @@
   SetStateAction,
   createContext,
   useRef,
+  useCallback,
 } from "react";
 import { ValidationError } from "yup";
+import { useDebounceCallback } from "@react-hook/debounce";
 
 export interface ValidationContextState {
   formErrorCount: number;
-  setFormErrorCount: Dispatch<SetStateAction<number>>;
   formIsTouched: boolean;
   setFormIsTouched: Dispatch<SetStateAction<boolean>>;
   formIsDirty: boolean;
   setFormIsDirty: Dispatch<SetStateAction<boolean>>;
-  callbacks: MutableRefObject<ValidatorCallbacks>[];
+  validatorRefs: MutableRefObject<ValidatorRef>[];
   options: ValidatorOptions;
+  updateFormErrorCount: () => void;
 }
 
-export interface ValidatorCallbacks {
+export interface ValidatorRef {
   reset: () => void;
   validate: () => Promise<ValidationError[]>;
+  errors: ValidationError[];
 }
 
 export const ValidationContext = createContext<ValidationContextState | null>(
@@ -43,7 +46,20 @@ export const useOrCreateValidationContext = (
 
   // a ref of array of refs
   // this is the only way to ensure the array does not get replaced on rerenders
-  const callbacksRef = useRef<MutableRefObject<ValidatorCallbacks>[]>([]);
+  const validatorRefsRef = useRef<MutableRefObject<ValidatorRef>[]>([]);
+
+  const updateFormErrorCount = useCallback(
+    useDebounceCallback(() => {
+      // debouncing primarily to push this outside of current loop in case calling hook is about to be unmounted
+      // also doesn't hurt to prevent unnecessary updates of formErrorCount
+      const errorCount = validatorRefsRef.current
+        .filter((ref) => !!ref.current?.errors)
+        .flatMap((ref) => ref.current.errors).length;
+
+      setFormErrorCount(errorCount);
+    }, 50),
+    [setFormErrorCount]
+  );
 
   if (context) {
     if (options) {
@@ -59,13 +75,13 @@ export const useOrCreateValidationContext = (
 
   const newContext: ValidationContextState = {
     formErrorCount,
-    setFormErrorCount,
     formIsTouched,
     setFormIsTouched,
     formIsDirty,
     setFormIsDirty,
-    callbacks: callbacksRef.current,
+    validatorRefs: validatorRefsRef.current,
     options: options || {},
+    updateFormErrorCount,
   };
 
   return newContext;
