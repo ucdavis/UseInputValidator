@@ -18,6 +18,7 @@ import {
   ValidatorRef,
   ValidatorOptions,
 } from "./ValidationProvider";
+import { useIsMounted, usePrevious } from "./utilities";
 
 const validateDelay = 250;
 const resetDelay = 300; // longer than validateDelay to allow resets to be initiated from within event handlers
@@ -58,6 +59,8 @@ export function useInputValidator<T>(
     [errors]
   );
 
+  const isMounted = useIsMounted();
+
   useEffect(() => {
     const errorCount = errors.flatMap((e) => e.errors).length;
     const previousErrorCount = (previousErrors || []).flatMap((e) => e.errors)
@@ -70,32 +73,31 @@ export function useInputValidator<T>(
   const validateFieldImpl = useCallback(
     async (name: TKey, value: T[TKey], reevaluateErrors: boolean = false) => {
       const newValues = ({ ...values, [name]: value } as unknown) as T;
-      setValues(newValues);
+      isMounted() && setValues(newValues);
       try {
         await schema.validateAt(name as string, newValues);
         if (propertyHasErrors(name)) {
-          setErrors((e) => e.filter((e) => e.path !== name));
+          isMounted() && setErrors((e) => e.filter((e) => e.path !== name));
         }
       } catch (e: unknown) {
         if (e instanceof ValidationError) {
-          setErrors((errors) => [
-            ...errors.filter((e) => e.path !== name),
-            e as ValidationError,
-          ]);
+          isMounted() &&
+            setErrors((errors) => [
+              ...errors.filter((e) => e.path !== name),
+              e as ValidationError,
+            ]);
           return e;
         }
       } finally {
-        if (reevaluateErrors) {
+        if (isMounted() && reevaluateErrors) {
           // make sure other touched fields are reevaluated to account for complex validations
-          const errorFields = errors.map((e) => e.path as TKey);
-
           for (const field of touchedFields.filter((e) => e !== name)) {
             validateFieldImpl(field, newValues[field]);
           }
         }
       }
     },
-    [schema, setValues, setErrors, propertyHasErrors, values]
+    [schema, setValues, setErrors, propertyHasErrors, values, isMounted]
   );
 
   const validateField = useDebounceCallback(validateFieldImpl, validateDelay);
@@ -170,12 +172,14 @@ export function useInputValidator<T>(
     handler: ChangeEventHandler<HTMLInputElement> | null = null
   ) => (e: ChangeEvent<HTMLInputElement>) => {
     handler && handler(e);
-    // If T[TKey] is a number, this doesn't actually convert the string to a number.
-    // But yup doesn't seem to mind, and that's what counts.
-    valueChanged(name, (e.target.value as unknown) as T[TKey]);
-    setFormIsDirty(true);
-    if (!dirtyFields.some((f) => f === name)) {
-      setDirtyFields([...dirtyFields, name]);
+    if (isMounted()) {
+      // If T[TKey] is a number, this doesn't actually convert the string to a number.
+      // But yup doesn't seem to mind, and that's what counts.
+      valueChanged(name, (e.target.value as unknown) as T[TKey]);
+      setFormIsDirty(true);
+      if (!dirtyFields.some((f) => f === name)) {
+        setDirtyFields([...dirtyFields, name]);
+      }
     }
   };
 
@@ -186,12 +190,14 @@ export function useInputValidator<T>(
     handler: ((value: any) => void) | null = null
   ) => (value: any) => {
     handler && handler(value);
-    // If T[TKey] is a number, this doesn't actually convert the string to a number.
-    // But yup doesn'tx seem to mind, and that's what counts.
-    valueChanged(name, value as T[TKey]);
-    setFormIsDirty(true);
-    if (!dirtyFields.some((f) => f === name)) {
-      setDirtyFields([...dirtyFields, name]);
+    if (isMounted()) {
+      // If T[TKey] is a number, this doesn't actually convert the string to a number.
+      // But yup doesn'tx seem to mind, and that's what counts.
+      valueChanged(name, value as T[TKey]);
+      setFormIsDirty(true);
+      if (!dirtyFields.some((f) => f === name)) {
+        setDirtyFields([...dirtyFields, name]);
+      }
     }
   };
 
@@ -200,11 +206,13 @@ export function useInputValidator<T>(
   };
 
   const onBlurValue = (name: TKey, value?: T[TKey] | string) => {
-    setFormIsTouched(true);
-    if (!touchedFields.some((f) => f === name)) {
-      setTouchedFields([...touchedFields, name]);
+    if (isMounted()) {
+      setFormIsTouched(true);
+      if (!touchedFields.some((f) => f === name)) {
+        setTouchedFields([...touchedFields, name]);
+      }
+      validateField(name, (value || values[name]) as T[TKey]);
     }
-    validateField(name, (value || values[name]) as T[TKey]);
   };
 
   const fieldIsTouched = (name: TKey) => touchedFields.some((f) => f === name);
@@ -212,10 +220,12 @@ export function useInputValidator<T>(
 
   const resetField = useCallback(
     useDebounceCallback((name: TKey) => {
-      setTouchedFields(touchedFields.filter((f) => f === name));
-      setDirtyFields(dirtyFields.filter((f) => f === name));
-      if (propertyHasErrors(name)) {
-        setErrors((errors) => errors.filter((e) => e.path !== name));
+      if (isMounted()) {
+        setTouchedFields(touchedFields.filter((f) => f === name));
+        setDirtyFields(dirtyFields.filter((f) => f === name));
+        if (propertyHasErrors(name)) {
+          setErrors((errors) => errors.filter((e) => e.path !== name));
+        }
       }
     }, resetDelay),
     [
@@ -231,10 +241,12 @@ export function useInputValidator<T>(
 
   const resetLocalFields = useCallback(
     useDebounceCallback(() => {
-      setTouchedFields([]);
-      setDirtyFields([]);
-      setErrors([]);
-      updateFormErrorCount();
+      if (isMounted()) {
+        setTouchedFields([]);
+        setDirtyFields([]);
+        setErrors([]);
+        updateFormErrorCount();
+      }
     }, resetDelay),
     [setTouchedFields, setDirtyFields, setErrors, updateFormErrorCount]
   );
@@ -244,8 +256,10 @@ export function useInputValidator<T>(
       const reset = ref.current?.reset;
       reset && reset();
     });
-    setFormIsTouched(false);
-    setFormIsDirty(false);
+    if (isMounted()) {
+      setFormIsTouched(false);
+      setFormIsDirty(false);
+    }
   };
 
   useEffect(() => {
@@ -273,15 +287,4 @@ export function useInputValidator<T>(
     context,
     validateAll,
   };
-}
-
-// provides previous value of given state
-function usePrevious<T>(
-  value: T
-): [T | undefined, MutableRefObject<T | undefined>] {
-  const ref = useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return [ref.current, ref];
 }

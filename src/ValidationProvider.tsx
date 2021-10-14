@@ -9,6 +9,7 @@
 } from "react";
 import { ValidationError } from "yup";
 import { useDebounceCallback } from "@react-hook/debounce";
+import { useIsMounted } from "./utilities";
 
 export interface ValidationContextState {
   formErrorCount: number;
@@ -47,6 +48,7 @@ export const useOrCreateValidationContext = (
   // a ref of array of refs
   // this is the only way to ensure the array does not get replaced on rerenders
   const validatorRefsRef = useRef<MutableRefObject<ValidatorRef>[]>([]);
+  const isMounted = useIsMounted();
 
   const updateFormErrorCount = useCallback(
     useDebounceCallback(() => {
@@ -56,9 +58,9 @@ export const useOrCreateValidationContext = (
         .filter((ref) => !!ref.current?.errors)
         .flatMap((ref) => ref.current.errors).length;
 
-      setFormErrorCount(errorCount);
+      isMounted() && setFormErrorCount(errorCount);
     }, 50),
-    [setFormErrorCount]
+    [setFormErrorCount, isMounted]
   );
 
   if (context) {
