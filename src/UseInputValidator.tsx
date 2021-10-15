@@ -286,5 +286,6 @@ export function useInputValidator<T>(
     resetLocalFields,
     context,
     validateAll,
+    propertyHasErrors,
   };
 }
