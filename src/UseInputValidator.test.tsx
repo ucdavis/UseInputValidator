@@ -266,7 +266,7 @@ describe("useInputValidator", () => {
     });
   });
 
-  it("should have pristine field state after resetLocalFields", async () => {
+  it("should have pristine field state after resetField", async () => {
     const { result, rerender } = renderHook(() =>
       useInputValidator(dataSchema, formData, validatorOptions)
     );
@@ -290,7 +290,6 @@ describe("useInputValidator", () => {
     });
 
     await waitFor(() => {
-      rerender();
       expect(result.current.fieldIsDirty("aValue")).toBeFalsy();
       expect(result.current.fieldIsTouched("aValue")).toBeFalsy();
       expect(result.current.formErrorCount).toEqual(0);

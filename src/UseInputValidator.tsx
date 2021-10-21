@@ -223,8 +223,8 @@ export function useInputValidator<T>(
   const resetField = useCallback(
     useDebounceCallback((name: TKey) => {
       if (isMounted()) {
-        setTouchedFields(touchedFields.filter((f) => f === name));
-        setDirtyFields(dirtyFields.filter((f) => f === name));
+        setTouchedFields(touchedFields.filter((f) => f !== name));
+        setDirtyFields(dirtyFields.filter((f) => f !== name));
         if (propertyHasErrors(name)) {
           setErrors((errors) => errors.filter((e) => e.path !== name));
         }
