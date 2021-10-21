@@ -20,8 +20,8 @@ import {
 } from "./ValidationProvider";
 import { useIsMounted, usePrevious } from "./utilities";
 
-const validateDelay = 250;
-const resetDelay = 300; // longer than validateDelay to allow resets to be initiated from within event handlers
+const defaultValidateDelay = 250;
+const resetDelayOffset = 50; // added to validateDelay to allow resets to be initiated from within event handlers
 
 export function useInputValidator<T>(
   schema: AnyObjectSchema,
@@ -100,7 +100,10 @@ export function useInputValidator<T>(
     [schema, setValues, setErrors, propertyHasErrors, values, isMounted]
   );
 
-  const validateField = useDebounceCallback(validateFieldImpl, validateDelay);
+  const validateField = useDebounceCallback(
+    validateFieldImpl,
+    context.options.validateDelay || defaultValidateDelay
+  );
 
   const registeredNames = useRef([] as TKey[]);
   const validatorRef = useRef({} as ValidatorRef);
@@ -227,7 +230,7 @@ export function useInputValidator<T>(
           setErrors((errors) => errors.filter((e) => e.path !== name));
         }
       }
-    }, resetDelay),
+    }, (context.options.validateDelay || defaultValidateDelay) + resetDelayOffset),
     [
       touchedFields,
       setTouchedFields,
@@ -247,7 +250,7 @@ export function useInputValidator<T>(
         setErrors([]);
         updateFormErrorCount();
       }
-    }, resetDelay),
+    }, (context.options.validateDelay || defaultValidateDelay) + resetDelayOffset),
     [setTouchedFields, setDirtyFields, setErrors, updateFormErrorCount]
   );
 

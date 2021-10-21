@@ -35,6 +35,7 @@ export const ValidationContext = createContext<ValidationContextState | null>(
 export interface ValidatorOptions {
   classNameErrorInput?: string;
   classNameErrorMessage?: string;
+  validateDelay?: number;
 }
 
 export const useOrCreateValidationContext = (

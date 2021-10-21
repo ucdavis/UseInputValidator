@@ -1,6 +1,6 @@
 import React from "react";
 import { renderHook, act } from "@testing-library/react-hooks";
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import * as yup from "yup";
 import { useInputValidator } from "./UseInputValidator";
 import { ValidatorOptions } from "./ValidationProvider";
@@ -55,6 +55,7 @@ beforeEach(() => {
   validatorOptions = {
     classNameErrorInput: "is-invalid",
     classNameErrorMessage: "text-danger",
+    validateDelay: 1,
   };
 });
 
@@ -64,7 +65,9 @@ afterEach(() => {
 });
 
 const renderErrorMessage = (inputErrorMessage: JSX.Element) =>
-  render(<div id="msg-id">{inputErrorMessage}</div>);
+  render(
+    inputErrorMessage && <div data-testid="msg-id">{inputErrorMessage}</div>
+  );
 
 describe("useInputValidator", () => {
   it("should have no errors if untouched", () => {
@@ -72,11 +75,30 @@ describe("useInputValidator", () => {
       useInputValidator(dataSchema, formData, validatorOptions)
     );
 
-    let aValue_render = renderErrorMessage(
+    const aValue_render = renderErrorMessage(
       <result.current.InputErrorMessage name="aValue" />
     );
 
-    expect(aValue_render.queryByTestId("msg-id")).toBeNull();
+    expect(aValue_render.queryByTestId("msg-id")).toContainHTML("");
     expect(result.current.formErrorCount).toBe(0);
+  });
+
+  it("should have one error for one invalid field", async () => {
+    const { result } = renderHook(() =>
+      useInputValidator(dataSchema, formData, validatorOptions)
+    );
+
+    const aValue_render = renderErrorMessage(
+      <result.current.InputErrorMessage name="aValue" />
+    );
+
+    act(() => {
+      result.current.validateAll();
+    });
+
+    await waitFor(() => {
+      expect(aValue_render.getByTestId("msg-id")).toBeInTheDocument();
+      expect(result.current.formErrorCount).toEqual(1);
+    });
   });
 });
