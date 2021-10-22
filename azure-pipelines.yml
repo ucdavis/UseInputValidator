@@ -30,6 +30,7 @@ jobs:
           customCommand: "run test"
 
   - job: SetVariables
+    dependsOn: Test
     condition: and(succeeded(), eq(variables.isMain, 'true'))
     steps:
       - bash: |
@@ -38,22 +39,24 @@ jobs:
         name: step1
 
   - job: Publish
+    dependsOn: SetVariables
     condition: succeeded()
     variables:
       majorMinorVersion: $[ dependencies.SetVariables.outputs['step1.majorMinor'] ]
       buildNumber: $[counter(variables['majorMinorVersion'], 0)]
       semanticVersion: $[format('{0}.{1}', variables['majorMinorVersion'], variables['buildNumber'])]
     steps:
+      - bash: |
+          echo "majorMinorVersion: $(majorMinorVersion)"
+          echo "buildNumber: $(buildNumber)"
+          echo "semanticVersion: $(semanticVersion)"
       - task: Npm@1
         inputs:
           command: "custom"
           customCommand: "--no-git-tag-version --force version $(semanticVersion)"
 
       - bash: |
-          echo "Expected package version:"
-          echo $(semanticVersion)
-          echo "New package version:"
-          echo $(node -p "require('./package.json').version")
+          echo "New package version: $(node -p "require('./package.json').version")"
 
       # - task: Npm@1
       #   inputs:
