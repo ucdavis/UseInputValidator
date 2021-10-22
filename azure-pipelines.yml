@@ -1,19 +1,31 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+name: $(majorMinorVersion).$(semanticVersion)
 
 trigger:
-- main
+  - main
 
 pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: "14.x"
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - task: Npm@1
+    displayName: "Install Npm Packages"
+    inputs:
+      command: "install"
+      workingDir: "./"
+
+  - task: Npm@1
+    displayName: "Run Tests"
+    inputs:
+      command: "custom"
+      workingDir: "./"
+      customCommand: "run test"
+
+  # - task: Npm@1
+  #   inputs:
+  #     command: publish
+  #     publishRegistry: useExternalRegistry
+  #     publishEndpoint: "npmjs.org"
