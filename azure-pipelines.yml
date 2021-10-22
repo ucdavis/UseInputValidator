@@ -43,7 +43,7 @@ jobs:
     condition: succeeded()
     variables:
       majorMinorVersion: $[ dependencies.SetVariables.outputs['step1.majorMinor'] ]
-      buildNumber: $[counter($[ dependencies.SetVariables.outputs['step1.majorMinor'] ], 0)]
+      buildNumber: $[counter($(majorMinorVersion), 0)]
       semanticVersion: $[format('{0}.{1}', variables['majorMinorVersion'], variables['buildNumber'])]
     steps:
       - bash: |
