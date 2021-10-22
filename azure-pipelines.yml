@@ -6,26 +6,57 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: "14.x"
+variables:
+  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 
-  - task: Npm@1
-    displayName: "Install Npm Packages"
-    inputs:
-      command: "install"
-      workingDir: "./"
+jobs:
+  - job: Test
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: "14.x"
 
-  - task: Npm@1
-    displayName: "Run Tests"
-    inputs:
-      command: "custom"
-      workingDir: "./"
-      customCommand: "run test"
+      - task: Npm@1
+        displayName: "Install Npm Packages"
+        inputs:
+          command: "install"
+          workingDir: "./"
 
-  # - task: Npm@1
-  #   inputs:
-  #     command: publish
-  #     publishRegistry: useExternalRegistry
-  #     publishEndpoint: "npmjs.org"
+      - task: Npm@1
+        displayName: "Run Tests"
+        inputs:
+          command: "custom"
+          workingDir: "./"
+          customCommand: "run test"
+
+  - job: SetVariables
+    condition: and(succeeded(), eq(variables.isMain, 'true'))
+    steps:
+      - bash: |
+          MAJOR_MINOR=$(node -p "require('./package.json').version" | awk -F. '{printf "%s.%s",$1,$2;}')
+          echo "##vso[task.setvariable variable=majorMinor;]${MAJOR_MINOR}"
+        name: step1
+
+  - job: Publish
+    condition: succeeded()
+    variables:
+      majorMinorVersion: $[ dependencies.SetVariables.outputs['step1.majorMinor'] ]
+      buildNumber: $[counter(variables['majorMinorVersion'], 0)]
+      semanticVersion: $[format('{0}.{1}', variables['majorMinorVersion'], variables['buildNumber'])]
+    steps:
+      - task: Npm@1
+        inputs:
+          command: "custom"
+          customCommand: "--no-git-tag-version --force version $(semanticVersion)"
+
+      - bash: |
+          echo "Expected package version:"
+          echo $(semanticVersion)
+          echo "New package version:"
+          echo $(node -p "require('./package.json').version")
+
+      # - task: Npm@1
+      #   inputs:
+      #     command: publish
+      #     publishRegistry: useExternalRegistry
+      #     publishEndpoint: "npmjs.org"
