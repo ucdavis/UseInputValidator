@@ -23,6 +23,11 @@ steps:
       command: "custom"
       customCommand: "run test"
 
+  - script: |
+      git config --global user.email "ucdotnetadmin@ucdavis.edu"
+      git config --global user.name "Azure Pipeline"
+    displayName: "Configure git identity"
+    
   - task: Npm@1
     displayName: "Update patch number"
     inputs:
@@ -37,9 +42,5 @@ steps:
       publishEndpoint: "npmjs.org"
 
   - script: |
-      git config --global user.email "ucdotnetadmin@ucdavis.edu"
-      git config --global user.name "Azure Pipeline"
-      git add package.json
-      git commit -m "Bump version patch by Azure Pipeline"
       git push -u origin HEAD:main
     displayName: "Push to git origin"
