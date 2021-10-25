@@ -47,7 +47,6 @@ jobs:
           customCommand: "version --no-git-tag-version patch --force"
 
       - task: Npm@1
-        condition: onSuccess()
         displayName: "Publish to npmjs"
         inputs:
           command: publish
