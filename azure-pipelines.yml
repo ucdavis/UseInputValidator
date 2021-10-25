@@ -8,7 +8,7 @@ variables:
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 
 jobs:
-  - job: Test
+  - job: TestAndDeploy
     steps:
       - checkout: self
         persistCredentials: true
@@ -28,25 +28,21 @@ jobs:
           command: "custom"
           customCommand: "run test"
 
-  - job: Publish
-    dependsOn: Test
-    condition: and(succeeded(), eq(variables.isMain, 'true'))
-    steps:
-      - checkout: self
-        persistCredentials: true
-
       - script: |
           git config --global user.email "ucdotnetadmin@ucdavis.edu"
           git config --global user.name "Azure Pipeline"
+        condition: and(succeeded(), eq(variables.isMain, 'true'))
         displayName: "Configure git identity"
 
       - task: Npm@1
+        condition: and(succeeded(), eq(variables.isMain, 'true'))
         displayName: "Update patch number"
         inputs:
           command: "custom"
           customCommand: "version --no-git-tag-version patch --force"
 
       - task: Npm@1
+        condition: and(succeeded(), eq(variables.isMain, 'true'))
         displayName: "Publish to npmjs"
         inputs:
           command: publish
@@ -58,4 +54,5 @@ jobs:
           git commit -a -m "Bump version patch [skip ci]"
           git tag v${PACKAGE_VERSION}
           git push -u origin HEAD:main
+        condition: and(succeeded(), eq(variables.isMain, 'true'))
         displayName: "Push to git origin"
