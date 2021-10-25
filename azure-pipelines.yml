@@ -7,40 +7,56 @@ pool:
 variables:
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: "14.x"
+jobs:
+  - job: Test
+    steps:
+      - checkout: self
+        persistCredentials: true
 
-  - task: Npm@1
-    displayName: "Install NPM packages"
-    inputs:
-      command: "install"
+      - task: NodeTool@0
+        inputs:
+          versionSpec: "14.x"
 
-  - task: Npm@1
-    displayName: "Run tests"
-    inputs:
-      command: "custom"
-      customCommand: "run test"
+      - task: Npm@1
+        displayName: "Install NPM packages"
+        inputs:
+          command: "install"
 
-  - script: |
-      git config --global user.email "ucdotnetadmin@ucdavis.edu"
-      git config --global user.name "Azure Pipeline"
-    displayName: "Configure git identity"
-    
-  - task: Npm@1
-    displayName: "Update patch number"
-    inputs:
-      command: "custom"
-      customCommand: "version patch --force"
+      - task: Npm@1
+        displayName: "Run tests"
+        inputs:
+          command: "custom"
+          customCommand: "run test"
 
-  - task: Npm@1
-    displayName: "Publish to npmjs"
-    inputs:
-      command: publish
-      publishRegistry: useExternalRegistry
-      publishEndpoint: "npmjs.org"
+  - job: Publish
+    dependsOn: Test
+    condition: and(succeeded(), eq(variables.isMain, 'true'))
+    steps:
+      - checkout: self
+        persistCredentials: true
 
-  - script: |
-      git push -u origin HEAD:main
-    displayName: "Push to git origin"
+      - script: |
+          git config --global user.email "ucdotnetadmin@ucdavis.edu"
+          git config --global user.name "Azure Pipeline"
+        displayName: "Configure git identity"
+
+      - task: Npm@1
+        displayName: "Update patch number"
+        inputs:
+          command: "custom"
+          customCommand: "version --no-git-tag-version patch --force"
+
+      - task: Npm@1
+        condition: onSuccess()
+        displayName: "Publish to npmjs"
+        inputs:
+          command: publish
+          publishRegistry: useExternalRegistry
+          publishEndpoint: "npmjs.org"
+
+      - script: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          git commit -a -m "Bump version patch [skip ci]"
+          git tag v${PACKAGE_VERSION}
+          git push -u origin HEAD:main
+        displayName: "Push to git origin"
