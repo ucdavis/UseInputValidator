@@ -129,15 +129,6 @@ export function useInputValidator<T>(
     return errors;
   }, [validateFieldImpl, values]);
 
-  const validateAll = async () => {
-    let errors = [] as ValidationError[];
-    for (const ref of validatorRefs) {
-      const validate = ref.current?.validate;
-      validate && (errors = [...errors, ...(await validate())]);
-    }
-    return errors;
-  };
-
   const getClassName = (name: TKey, passThroughClassNames: string = "") => {
     return propertyHasErrors(name)
       ? `${passThroughClassNames} ${context.options?.classNameErrorInput || ""}`
@@ -287,7 +278,7 @@ export function useInputValidator<T>(
     resetField,
     resetLocalFields,
     context,
-    validateAll,
+    validateAll: context.validateAll,
     propertyHasErrors,
   };
 }

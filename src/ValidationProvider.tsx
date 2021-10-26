@@ -20,6 +20,7 @@ export interface ValidationContextState {
   validatorRefs: MutableRefObject<ValidatorRef>[];
   options: ValidatorOptions;
   updateFormErrorCount: () => void;
+  validateAll: () => Promise<ValidationError[]>;
 }
 
 export interface ValidatorRef {
@@ -64,6 +65,15 @@ export const useOrCreateValidationContext = (
     [setFormErrorCount, isMounted]
   );
 
+  const validateAll = async () => {
+    let errors = [] as ValidationError[];
+    for (const ref of validatorRefsRef.current) {
+      const validate = ref.current?.validate;
+      validate && (errors = [...errors, ...(await validate())]);
+    }
+    return errors;
+  };
+
   if (context) {
     if (options) {
       validateOptions(options);
@@ -85,6 +95,7 @@ export const useOrCreateValidationContext = (
     validatorRefs: validatorRefsRef.current,
     options: options || {},
     updateFormErrorCount,
+    validateAll,
   };
 
   return newContext;
