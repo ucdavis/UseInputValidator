@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { Data } from "../types";
 import { dataSchema } from "../schemas";
-import { useInputValidator, ValidationProvider } from "../..";
+import {
+  useInputValidator,
+  useOrCreateValidationContext,
+  ValidationProvider,
+} from "../..";
 import { NestedForm } from "./NestedForm";
 
 export interface Props {
@@ -31,55 +35,74 @@ export const Form = (props: Props) => {
 
   return (
     <>
-      <ValidationProvider context={context}>
-        <input
-          className={getClassName("aValue")}
-          name="aValue"
-          value={data.aValue}
-          onChange={onChange("aValue", (e) =>
-            setData((d) => ({ ...d, aValue: e.target.value }))
-          )}
-          onBlur={onBlur("aValue")}
-        />
-        <InputErrorMessage name="aValue" />
-        {data.nestedValues.map((n, i) => (
-          <div key={`${i}_${n.id}`}>
-            <NestedForm
-              nestedData={n}
-              setNestedData={(nestedData) => {
-                const nestedValues = [...data.nestedValues];
-                nestedValues.splice(i, 1, nestedData);
-                setData({ ...data, nestedValues });
-              }}
-              onDelete={() => {
-                const nestedValues = [...data.nestedValues];
-                nestedValues.splice(i, 1);
-                setData({ ...data, nestedValues });
-              }}
-            />
-          </div>
-        ))}
-        <button onClick={validateAll}>Validate All</button>
-        <button
-          disabled={formErrorCount > 0}
-          onClick={async () => {
-            const errors = await validateAll();
-            if (errors.length > 0) {
-              alert("Fix errors first");
-            } else {
-              alert("Success!");
-            }
-          }}
-        >
-          Submit
-        </button>
-        <button
-          disabled={!formIsDirty && !formIsTouched && formErrorCount === 0}
-          onClick={resetContext}
-        >
-          Reset
-        </button>
-      </ValidationProvider>
+      <input
+        className={getClassName("aValue")}
+        name="aValue"
+        value={data.aValue}
+        onChange={onChange("aValue", (e) =>
+          setData((d) => ({ ...d, aValue: e.target.value }))
+        )}
+        onBlur={onBlur("aValue")}
+      />
+      <InputErrorMessage name="aValue" />
+      {data.nestedValues.map((n, i) => (
+        <div key={`${i}_${n.id}`}>
+          <NestedForm
+            nestedData={n}
+            setNestedData={(nestedData) => {
+              const nestedValues = [...data.nestedValues];
+              nestedValues.splice(i, 1, nestedData);
+              setData({ ...data, nestedValues });
+            }}
+            onDelete={() => {
+              const nestedValues = [...data.nestedValues];
+              nestedValues.splice(i, 1);
+              setData({ ...data, nestedValues });
+            }}
+          />
+        </div>
+      ))}
+      <button onClick={validateAll}>Validate All</button>
+      <button
+        disabled={formErrorCount > 0}
+        onClick={async () => {
+          const errors = await validateAll();
+          if (errors.length > 0) {
+            alert("Fix errors first");
+          } else {
+            alert("Success!");
+          }
+        }}
+      >
+        Submit
+      </button>
+      <button
+        disabled={!formIsDirty && !formIsTouched && formErrorCount === 0}
+        onClick={resetContext}
+      >
+        Reset
+      </button>
     </>
+  );
+};
+
+export const FormProvidedWithContext = (props: Props) => {
+  const context = useOrCreateValidationContext({
+    classNameErrorInput: "is-invalid",
+    classNameErrorMessage: "text-danger",
+  });
+
+  return (
+    <ValidationProvider context={context}>
+      <Form data={props.data} />
+    </ValidationProvider>
+  );
+};
+
+export const FormProvidedWithNoContext = (props: Props) => {
+  return (
+    <ValidationProvider>
+      <Form data={props.data} />
+    </ValidationProvider>
   );
 };
