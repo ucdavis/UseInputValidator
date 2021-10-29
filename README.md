@@ -19,13 +19,13 @@ use-input-validator is a hook that, given an object and a yup schema for that ob
 ## Installation
 
 ```sh
-npm install --save @ucdavis/use-input-validator
+npm install --save use-input-validator
 ```
 
 ## Usage
 
 ```tsx
-import { useInputValidator, ValidationProvider } from "@ucdavis/use-input-validator";
+import { useInputValidator, ValidationProvider } from "use-input-validator";
 import * as yup from "yup";
 
 export interface Data {
